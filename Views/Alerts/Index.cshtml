@@ -1,0 +1,52 @@
+@model List<Alert>
+
+<script>
+async function dismiss(id){
+    await fetch("/alerts/dismiss/"+id);
+    window.location.reload();
+}
+</script>
+
+
+<div class="space-y-5">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Les alerts</h1>
+    <p class="text-sm text-muted-foreground">Tous les alerts actuelles</p>
+  </div>
+  <div class="flex flex-wrap items-end justify-end gap-3">
+
+
+  </div>
+  <div class="overflow-hidden rounded-xl border bg-card shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+        <tr>
+          <th class="px-4 py-3">Machine Id</th>
+          <th class="px-4 py-3">Details</th>
+          <th class="px-4 py-3">Date</th>
+          <th class="px-4 py-3"></th>
+
+        </tr>
+      </thead>
+      <tbody>
+ @foreach (var h in @Model)
+{       <tr class="border-t hover:bg-muted/30">
+          <td class="px-4 py-3 font-mono text-xs text-muted-foreground">@h.machineId</td>
+          <td class="px-4 py-3 font-medium">@h.Details</td>
+          <td class="px-4 py-3 text-muted-foreground">@h.CreationTime</td>
+          <td class="px-4 py-3 text-right">
+          <button
+                onclick="dismiss('@h.Id')"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs"><svg
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-eye mr-1 h-3.5 w-3.5" aria-hidden="true">
+                <path
+                  d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0">
+                </path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>Ignorer</button></td>
+        </tr>
+}
+      </tbody>
+    </table>

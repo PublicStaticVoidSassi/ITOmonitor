@@ -1,0 +1,786 @@
+@model sutnance.Models.Machine;
+@using sutnance.Models;
+<script>
+function _delete(){
+    let id = '@Model.Id';
+    if (!confirm("effacer la machine @Model.Name ?")){
+        return;
+    }
+    location.replace("/etat/Delete/@Model.Id");
+}
+  function openCreateModal() {
+    document.getElementById("modalOverlay").style.display = "block";
+  }
+  function closeModal() {
+    document.getElementById("modalOverlay").style.display = "none";
+    document.getElementById("modalOverlay1").style.display = "none";
+  }
+</script>
+
+    <div class="machine-page">
+
+<div style="
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+">
+    <button
+        onclick="_delete()"
+        style="
+            padding: 10px 18px;
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            background: #dc3545;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
+        "
+        onmouseover="this.style.background='#bb2d3b'; this.style.borderColor='#bb2d3b';"
+        onmouseout="this.style.background='#dc3545'; this.style.borderColor='#dc3545';"
+    >
+        Effacer
+    </button>
+    <button class="inline-flex rounded-md items-center gap-1.5 px-2.5 py-1 font-medium bg-status-stable text-status-critical-foreground" onclick="openCreateModal()">
+      modifier
+    </button>
+</div>
+        <!-- HEADER -->
+        <div class="machine-header">
+            <div>
+                <div class="machine-id">
+                    @(Model.Id ?? "Unknown ID")
+                </div>
+
+                <h1 style="color:#111827;">
+                    @(Model.Name ?? "Unnamed Machine")
+                </h1>
+
+                @if (Model.Type is not null)
+                {
+                    <span class="machine-type">
+                        @(Model.Type.name ?? "Unknown type")
+                    </span>
+                }
+                else
+                {
+                    <span class="machine-type">
+                        Unknown type
+                    </span>
+                }
+            </div>
+
+            <div class="status">
+                @switch (Model.LastReport?.State)
+{
+    case MachineState.Stable:
+    {
+        <span class="status-dot stable"></span>
+        break;
+    }
+
+    case MachineState.Critique:
+    {
+        <span class="status-dot critical"></span>
+        break;
+    }
+
+    case MachineState.Partial:
+    {
+        <span class="status-dot partial"></span>
+        break;
+    }
+
+    default:
+    {
+        <span class="status-dot unknown"></span>
+        break;
+    }
+}
+                <span>
+                    @(Model.LastCheck ?? "No check available")
+                </span>
+            </div>
+        </div>
+
+
+        <div class="grid">
+
+            <!-- MACHINE INFORMATION -->
+            <section class="card">
+
+                <div class="card-title">
+                    <span>🖥️</span>
+                    Machine
+                </div>
+
+                <div class="info-grid">
+
+                    <div class="info">
+                        <span class="label">ID</span>
+                        <span class="value">
+                            @(Model.Id ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="info">
+                        <span class="label">Name</span>
+                        <span class="value">
+                            @(Model.Name ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="info">
+                        <span class="label">IP Address</span>
+                        <span class="value mono">
+                            @(Model.Ip ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="info">
+                        <span class="label">Site</span>
+                        <span class="value">
+                            @(Model.Site ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="info">
+                        <span class="label">Manager</span>
+                        <span class="value">
+                            @(Model.Manager ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="info">
+                        <span class="label">Created</span>
+                        <span class="value">
+                            @Model.CreationTime.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.docs))
+                {
+                    <a class="docs-button"
+                       href="@Model.docs"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        Documentation →
+                    </a>
+                }
+
+            </section>
+
+
+            <!-- MACHINE TYPE -->
+            <section class="card">
+                <div class="card-title">
+                    <span>⚙️</span>
+                    Machine Type
+                </div>
+                    <div class="type-name">
+                        @(Model.Type.name ?? "Unnamed type")
+                    </div>
+            </section>
+
+
+            <!-- LAST REPORT -->
+@if (Model.LastReport is not null)
+{
+    <section class="card report-card">
+
+        <div class="card-title">
+            <span>📊</span>
+            Latest Report
+
+            <span class="report-time">
+                @(Model.LastCheck ?? "Unknown")
+            </span>
+        </div>
+
+        <div class="report-state">
+
+            <span class="state-badge">
+                @Model.LastReport.State
+            </span>
+
+            <span class="report-date">
+                @Model.LastReport.CreationTime.ToString("dd/MM/yyyy HH:mm:ss")
+            </span>
+
+        </div>
+
+        <!-- RESOURCE STATS -->
+        <div class="stats">
+
+            <div class="stat">
+                <span class="stat-label">
+                    CPU Usage
+                </span>
+
+                <span class="stat-value">
+                    @(Model.LastReport.CPUUsage.ToString() ?? "N/A")%
+                </span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">
+                    Total RAM
+                </span>
+
+                <span class="stat-value">
+                    @(Model.LastReport.TotalRam.ToString() ?? "N/A")
+                </span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">
+                    Used RAM
+                </span>
+
+                <span class="stat-value">
+                    @(Model.LastReport.UsedRam.ToString() ?? "N/A")
+                </span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">
+                    Free RAM
+                </span>
+
+                <span class="stat-value">
+                    @(Model.LastReport.FreeRam.ToString() ?? "N/A")
+                </span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">
+                    Uptime
+                </span>
+
+                <span class="stat-value">
+                    @(Model.LastReport.Uptime.ToString() ?? "N/A")
+                </span>
+            </div>
+
+        </div>
+
+        <!-- SERVICES -->
+<div class="services">
+
+    <div class="service">
+        <span>SQL Server</span>
+
+        @if (Model.LastReport.IsSqlServerRunning == true)
+        {
+            <span class="indicator online"></span>
+        }
+        else
+        {
+            <span class="indicator offline"></span>
+        }
+    </div>
+
+
+    <div class="service">
+        <span>SSIS</span>
+
+        @if (Model.LastReport.IsSsisRunning == true)
+        {
+            <span class="indicator online"></span>
+        }
+        else
+        {
+            <span class="indicator offline"></span>
+        }
+    </div>
+
+
+    <div class="service">
+        <span>SSAS</span>
+
+        @if (Model.LastReport.IsSsasRunning == true)
+        {
+            <span class="indicator online"></span>
+        }
+        else
+        {
+            <span class="indicator offline"></span>
+        }
+    </div>
+
+
+    <div class="service">
+        <span>HTTP</span>
+
+        @if (Model.LastReport.IsHttpRunning == true)
+        {
+            <span class="indicator online"></span>
+        }
+        else
+        {
+            <span class="indicator offline"></span>
+        }
+    </div>
+
+
+    <div class="service">
+        <span>HTTPS</span>
+
+        @if (Model.LastReport.IsHttpsRunning == true)
+        {
+            <span class="indicator online"></span>
+        }
+        else
+        {
+            <span class="indicator offline"></span>
+        }
+    </div>
+
+</div>
+
+    </section>
+}
+else
+{
+    <section class="card no-report">
+
+        <div class="card-title">
+            <span>📊</span>
+            Latest Report
+        </div>
+
+        <p>
+            No reports have been received from this machine yet.
+        </p>
+
+    </section>
+}
+
+        </div>
+
+    </div>
+
+
+<div id="modalOverlay"
+     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.5); z-index:999;"
+     onclick="closeModal()">
+
+    <div style="position:absolute; top:50%; left:50%;
+         transform:translate(-50%, -50%);
+         width:600px; background:white; border-radius:10px;
+         padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.3);"
+         onclick="event.stopPropagation()">
+
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between;
+                    align-items:center; margin-bottom:15px;">
+
+            <h3 style="margin:0;font-weight:bold;">
+                Ajouter Une Machine
+            </h3>
+
+            <button type="button"
+                    onclick="closeModal()"
+                    style="border:none; background:none;
+                           font-size:20px; cursor:pointer;">
+                ✖
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="/Etat/Update">
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <input hidden name='id' value="@Model.Id" />
+                <!-- Name -->
+                <input name="name"
+                       required
+                       value="@Model.Name"
+                       style="padding:8px; border:1px solid #ccc;
+                              border-radius:6px;">
+
+                <!-- Machine Type -->
+                <select name="type"
+                        value="@Model.Type.Id"
+                        required
+                        style="padding:8px; border:1px solid #ccc;
+                               border-radius:6px;">
+
+
+                    @foreach (var type in ViewBag.machineTypes)
+                    {
+                        <option value="@type.Id">
+                            @type.name
+                        </option>
+                    }
+
+                </select>
+
+                <!-- IP -->
+                <input name="ip"
+                       required
+                       value="@Model.Ip"
+                       style="padding:8px; border:1px solid #ccc;
+                              border-radius:6px;">
+
+                <!-- Site -->
+                <input name="site"
+                       required
+                       value="@Model.Site"
+                       style="padding:8px; border:1px solid #ccc;
+                              border-radius:6px;">
+
+                <!-- Manager -->
+                <input name="manager"
+                       required
+                       value="@Model.Manager"
+                       type="email"
+                       placeholder="Email du responsable"
+                       style="padding:8px; border:1px solid #ccc;
+                              border-radius:6px;">
+
+                <!-- Documentation -->
+                <input name="docs"
+                       required
+                       value="@Model.docs"
+                       type="url"
+                       placeholder="Lien documentation"
+                       style="padding:8px; border:1px solid #ccc;
+                              border-radius:6px;">
+
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex; justify-content:flex-end;
+                        gap:10px; margin-top:15px;">
+
+                <button type="button"
+                        onclick="closeModal()"
+                        style="padding:8px 12px;
+                               border:1px solid #ccc;
+                               background:#eee;
+                               border-radius:6px;">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        style="padding:8px 12px;
+                               border:none;
+                               background:#2563eb;
+                               color:white;
+                               border-radius:6px;">
+                    Save
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<style>
+.machine-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #e5e7eb;
+}
+
+
+/* HEADER */
+
+.machine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.machine-id {
+    font-family: monospace;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.machine-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.machine-type {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: #1f2937;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+
+/* STATUS */
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    background: #111827;
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+.status-dot.partial{
+    background: yellow;
+    box-shadow: 0 0 10px #22c55e;
+}
+.status-dot.critical{
+    background: red;
+    box-shadow: 0 0 10px red;
+}
+.status-dot.unknown{
+    background: black;
+    box-shadow: 0 0 10px black;
+}.status-dot.stable{
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+}
+
+
+/* GRID */
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+
+/* CARD */
+
+.card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 22px;
+}
+
+.card-title > span:first-child {
+    font-size: 18px;
+}
+
+
+/* MACHINE INFO */
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.label,
+.stat-label {
+    color: #6b7280;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.value {
+    color: #f3f4f6;
+    font-size: 14px;
+}
+
+.mono {
+    font-family: monospace;
+}
+
+
+/* DOCUMENTATION */
+
+.docs-button {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: #1f2937;
+    color: #d1d5db;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.15s;
+}
+
+.docs-button:hover {
+    background: #374151;
+}
+
+
+/* TYPE */
+
+.type-name {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.type-id {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 20px;
+}
+
+.feature {
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: #1f2937;
+    color: #d1d5db;
+    font-size: 12px;
+}
+
+
+/* REPORT */
+
+.report-card {
+    grid-column: 1 / -1;
+}
+
+.report-time {
+    margin-left: auto;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.report-state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.state-badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: #1f2937;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.report-date {
+    color: #6b7280;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+
+/* STATS */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.stat {
+    padding: 16px;
+    border-radius: 10px;
+    background: #0b1220;
+}
+
+.stat-value {
+    display: block;
+    margin-top: 7px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+
+/* SERVICES */
+
+.services {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.service {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px;
+    border-radius: 9px;
+    background: #0b1220;
+    color: #d1d5db;
+    font-size: 13px;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.online {
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+.offline {
+    background: #ef4444;
+}
+
+
+/* NO REPORT */
+
+.no-report {
+    grid-column: 1 / -1;
+}
+
+.no-report p {
+    color: #6b7280;
+}
+
+
+
+</style>

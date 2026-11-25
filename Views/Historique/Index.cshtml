@@ -1,0 +1,131 @@
+@using sutnance.Models;
+@model List<Historique>
+
+<script>
+async function addNote(id){
+    let note = prompt("ajouter un note:");
+    await fetch('/Historique/addnote',{
+        method:'POST',
+        headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+        body: "id="+id+"&note="+note
+    });
+    window.location.reload();
+}
+</script>
+
+<div class="space-y-5">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Historique des événements</h1>
+    <p class="text-sm text-muted-foreground">Tous les incidents remontés et leur traitement.</p>
+  </div>
+  <div class="flex flex-wrap items-end justify-end gap-3">
+
+    <input
+      class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm w-72"
+      placeholder="Rechercher par machine id"
+      value="@Context.Request.Query["search"]"
+      onkeydown="handleSearchKey(event)"
+    >
+  </div>
+  <div class="overflow-hidden rounded-xl border bg-card shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+        <tr>
+          <th class="px-4 py-3">Machine Id</th>
+          <th class="px-4 py-3">Etat</th>
+          <th class="px-4 py-3">Depuis</th>
+          <th class="px-4 py-3">Jusqu'a</th>
+          <th class="px-4 py-3">remarque</th>
+          <th class="px-4 py-3"></th>
+
+        </tr>
+      </thead>
+      <tbody>
+ @foreach (var h in @Model)
+{       <tr class="border-t hover:bg-muted/30">
+          <td class="px-4 py-3 font-mono text-xs text-muted-foreground">@h.MachineId</td>
+          <td class="px-4 py-3 font-medium">@h.State</td>
+          <td class="px-4 py-3 text-muted-foreground">@h.From</td>
+          <td class="px-4 py-3">
+          @if(h.Until != null){
+          <text>@h.Until</text>
+          }else{
+          <text>Maintenant</text>
+          }
+          </td>
+          <td class="px-4 py-3 text-right">@h.Note?.Content</td>
+          <td class="px-4 py-3 text-right">
+          <button onclick="addNote('@h.Id')"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs">
+              +</button></td>
+        </tr>
+}
+      </tbody>
+    </table>
+        <div class="flex justify-end p-3">
+      <nav class="flex items-center gap-2 mt-4">
+
+        <button onclick="prevPage()" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs">
+          Prev
+        </button>
+        <button onclick="nextPage()" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs">
+          Next
+        </button>
+
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getPage() {
+    const url = new URL(window.location.href);
+    const page = parseInt(url.searchParams.get("page"));
+    return isNaN(page) ? 0 : page;
+  }
+  function setPage(page) {
+    const url = new URL(window.location.href);
+
+    if (page) {
+      url.searchParams.set("page", page);
+    } else {
+      url.searchParams.delete("page");
+    }
+
+    window.location.href = url.toString();
+  }
+function setState(state) {
+    const url = new URL(window.location.href);
+    if (state) {
+      url.searchParams.set("state", state);
+    }else{
+      url.searchParams.delete("state");
+    }
+    window.location.href = url.toString();
+}
+  function nextPage() {
+    setPage(getPage() + 1);
+  }
+
+  function prevPage() {
+    setPage(Math.max(getPage() - 1, 0));
+  }
+function handleSearchKey(event) {
+  if (event.key === "Enter") {
+    const value = event.target.value;
+
+    const url = new URL(window.location.href);
+
+    if (value) {
+      url.searchParams.set("search", value);
+    } else {
+      url.searchParams.delete("search");
+    }
+
+    window.location.href = url.toString();
+  }
+}
+
+</script>
